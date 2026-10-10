@@ -31,9 +31,14 @@ Install Xcode Command Line Tools:
 xcode-select --install
 ```
 
-### Ubuntu/Debian Linux
+### Linux
 
-Install the Tauri build dependencies and the media tools used by Gtube:
+Linux is supported on distributions with GTK/WebKitGTK and the Tauri system
+dependencies available. Ubuntu 22.04/24.04, Debian, Linux Mint, Fedora, and
+Arch Linux are suitable for development. The commands below install the
+dependencies for common distributions.
+
+#### Ubuntu, Debian, and Linux Mint
 
 ```bash
 sudo apt update
@@ -52,14 +57,91 @@ sudo apt install \
   mpv
 ```
 
-`ffprobe` is normally installed with `ffmpeg`. Verify the required commands are
-available:
+On older Ubuntu/Debian releases where `libwebkit2gtk-4.1-dev` is unavailable,
+install the WebKitGTK development package provided by that release instead,
+for example `libwebkit2gtk-4.0-dev`.
+
+#### Fedora
+
+```bash
+sudo dnf group install "Development Tools"
+sudo dnf install \
+  curl \
+  wget \
+  file \
+  openssl-devel \
+  libX11-devel \
+  libxdo-devel \
+  libappindicator-gtk3-devel \
+  librsvg2-devel \
+  gtk3-devel \
+  webkit2gtk4.1-devel \
+  ffmpeg \
+  yt-dlp \
+  mpv
+```
+
+The `ffmpeg` package may require the RPM Fusion repositories on Fedora. Follow
+the [RPM Fusion setup instructions](https://rpmfusion.org/Configuration) if
+your package manager cannot find it.
+
+#### Arch Linux and Manjaro
+
+```bash
+sudo pacman -S --needed \
+  base-devel \
+  curl \
+  wget \
+  file \
+  openssl \
+  libxdo \
+  libappindicator-gtk3 \
+  librsvg \
+  webkit2gtk-4.1 \
+  ffmpeg \
+  yt-dlp \
+  mpv
+```
+
+#### Verify Linux dependencies
+
+After installing the packages, verify that the media tools are available:
 
 ```bash
 ffmpeg -version
 ffprobe -version
 yt-dlp --version
 mpv --version
+```
+
+Then continue with the project setup:
+
+```bash
+git clone https://github.com/gvaa404/Gtube.git
+cd Gtube
+npm install
+npm run tauri:dev
+```
+
+To build a Linux installer:
+
+```bash
+npm run tauri:build
+```
+
+The resulting packages are placed in
+`src-tauri/target/release/bundle/`. Debian-based systems can install the
+`.deb` package with:
+
+```bash
+sudo apt install ./src-tauri/target/release/bundle/deb/*.deb
+```
+
+An AppImage does not need to be installed. Make it executable and launch it:
+
+```bash
+chmod +x src-tauri/target/release/bundle/appimage/*.AppImage
+./src-tauri/target/release/bundle/appimage/*.AppImage
 ```
 
 ## Getting started
