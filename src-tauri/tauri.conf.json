@@ -1,7 +1,7 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
   "productName": "Gtube",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "identifier": "com.gtube.app",
   "build": {
     "frontendDist": "../dist",
@@ -38,8 +38,7 @@
         "depends": [
           "ffmpeg",
           "yt-dlp",
-          "mpv",
-          "ffprobe"
+          "mpv"
         ]
       }
     }

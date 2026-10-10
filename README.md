@@ -200,8 +200,10 @@ Install a generated Debian package with:
 sudo apt install ./src-tauri/target/release/bundle/deb/*.deb
 ```
 
-The generated Linux package declares `ffmpeg`, `yt-dlp`, `mpv`, and `ffprobe`
-as runtime dependencies. If you build or run Gtube outside a Debian-based
+The generated Linux package declares `ffmpeg`, `yt-dlp`, and `mpv` as runtime
+dependencies. The `ffprobe` executable is provided by the `ffmpeg` package and
+is checked by Gtube at runtime; it is intentionally not listed as a separate
+Debian dependency. If you build or run Gtube outside a Debian-based
 distribution, install those tools using your distribution's package manager.
 
 ## Available commands
@@ -252,9 +254,9 @@ cargo --version
 
 ### The desktop build cannot find media tools
 
-Install `ffmpeg`, `ffprobe`, `yt-dlp`, and `mpv`, then verify that each command
-works from the same terminal used to launch Gtube. On Linux, these tools are
-also required when installing the generated package.
+Install `ffmpeg` (which provides `ffprobe`), `yt-dlp`, and `mpv`, then verify
+that each command works from the same terminal used to launch Gtube. On Linux,
+these tools are also required when installing the generated package.
 
 ### A clean rebuild is needed
 

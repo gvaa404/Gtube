@@ -1,0 +1,112 @@
+name: Release Linux package
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-linux:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Set version from release tag
+        env:
+          RELEASE_VERSION: ${{ github.ref_name }}
+        run: |
+          node - <<'NODE'
+          const fs = require('fs');
+          const version = process.env.RELEASE_VERSION.replace(/^v/, '');
+          const packageJson = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          packageJson.version = version;
+          fs.writeFileSync('package.json', `${JSON.stringify(packageJson, null, 2)}\n`);
+          const lock = JSON.parse(fs.readFileSync('package-lock.json', 'utf8'));
+          lock.version = version;
+          lock.packages[''].version = version;
+          fs.writeFileSync('package-lock.json', `${JSON.stringify(lock, null, 2)}\n`);
+          const cargo = fs.readFileSync('src-tauri/Cargo.toml', 'utf8')
+            .replace(/^version = ".*"$/m, `version = "${version}"`);
+          fs.writeFileSync('src-tauri/Cargo.toml', cargo);
+          const tauri = JSON.parse(fs.readFileSync('src-tauri/tauri.conf.json', 'utf8'));
+          tauri.version = version;
+          fs.writeFileSync('src-tauri/tauri.conf.json', `${JSON.stringify(tauri, null, 2)}\n`);
+          NODE
+
+      - name: Install Linux dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            build-essential \
+            curl \
+            file \
+            libayatana-appindicator3-dev \
+            libssl-dev \
+            libwebkit2gtk-4.1-dev \
+            libxdo-dev \
+            librsvg2-dev \
+            ffmpeg \
+            yt-dlp \
+            mpv
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install JavaScript dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Build frontend
+        run: npm run build
+
+      - name: Run Rust tests
+        run: cargo test --manifest-path src-tauri/Cargo.toml
+
+      - name: Build Debian package
+        run: npm run tauri:build
+
+      - name: Validate Debian metadata
+        shell: bash
+        run: |
+          deb="src-tauri/target/release/bundle/deb/Gtube_${GITHUB_REF_NAME#v}_amd64.deb"
+          test -f "$deb"
+          dpkg-deb -f "$deb" Package Version Architecture Depends
+          test "$(dpkg-deb -f "$deb" Package)" = "gtube"
+          test "$(dpkg-deb -f "$deb" Version)" = "${GITHUB_REF_NAME#v}"
+          test "$(dpkg-deb -f "$deb" Architecture)" = "amd64"
+          ! dpkg-deb -f "$deb" Depends | grep -qw ffprobe
+          for dependency in ffmpeg yt-dlp mpv; do
+            dpkg-deb -f "$deb" Depends | grep -qw "$dependency"
+          done
+          dpkg-deb -c "$deb" | grep -q 'usr/bin/app$'
+
+      - name: Create or update GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          deb="src-tauri/target/release/bundle/deb/Gtube_${GITHUB_REF_NAME#v}_amd64.deb"
+          if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            if gh release view "$GITHUB_REF_NAME" --repo "$GITHUB_REPOSITORY" --json assets \
+              --jq '.assets[].name' | grep -Fxq "$(basename "$deb")"; then
+              echo "Release asset already exists; leaving it unchanged."
+            else
+              gh release upload "$GITHUB_REF_NAME" "$deb" --repo "$GITHUB_REPOSITORY"
+            fi
+          else
+            gh release create "$GITHUB_REF_NAME" "$deb" \
+              --repo "$GITHUB_REPOSITORY" \
+              --title "Gtube $GITHUB_REF_NAME" \
+              --generate-notes
+          fi

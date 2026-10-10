@@ -499,6 +499,14 @@ function App() {
           </div>
         ))}
       </div>
+      {dependencies.some((tool) => !tool.available) && (
+        <p className="dependency-help">
+          Missing media tools can prevent downloads or playback. Install
+          <code> ffmpeg</code> (which provides <code>ffprobe</code>),
+          <code> yt-dlp</code>, and <code> mpv</code> with your distribution's
+          package manager, then restart Gtube.
+        </p>
+      )}
     </div>
   )
 
