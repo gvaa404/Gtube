@@ -199,6 +199,12 @@ h2, h3, p {
   gap: 10px;
 }
 
+.action-buttons.inline {
+  flex-direction: row;
+  flex-wrap: wrap;
+  margin-top: 12px;
+}
+
 .action-buttons button,
 .track-row button,
 .library-actions button {
@@ -277,6 +283,41 @@ h2, h3, p {
   grid-template-columns: 280px 1fr;
   gap: 22px;
   margin-bottom: 22px;
+}
+
+.results-list {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 22px;
+}
+
+.result-card {
+  display: grid;
+  grid-template-columns: 180px 1fr;
+  gap: 16px;
+  padding: 14px;
+  background: rgba(15, 23, 42, 0.7);
+  border: 1px solid rgba(148, 163, 184, 0.14);
+  border-radius: 18px;
+}
+
+.result-card img,
+.video-preview img {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: rgba(148, 163, 184, 0.12);
+}
+
+.result-card small {
+  display: block;
+  color: #94a3b8;
+  margin-top: 6px;
+}
+
+.result-card strong {
+  display: block;
 }
 
 .video-thumb {
@@ -418,6 +459,10 @@ h2, h3, p {
   .metrics-grid,
   .video-preview,
   .mini-player {
+    grid-template-columns: 1fr;
+  }
+
+  .result-card {
     grid-template-columns: 1fr;
   }
 }

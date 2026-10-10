@@ -218,6 +218,34 @@ distribution, install those tools using your distribution's package manager.
 | `npm run lint` | Run ESLint |
 | `npm run check` | Run ESLint and Rust tests |
 
+## Verify the media execution path
+
+Gtube uses the installed executables at runtime; it does not bundle or mock
+YouTube results. On Linux Mint, verify the same shell environment used to
+launch the application:
+
+```bash
+command -v yt-dlp ffmpeg ffprobe mpv
+yt-dlp --version
+ffmpeg -version
+ffprobe -version
+mpv --version
+```
+
+Run the automated checks and then launch the desktop app:
+
+```bash
+npm run check
+npm run build
+npm run tauri:dev
+```
+
+In the app, search for a term, inspect a returned result, validate or inspect
+a YouTube URL, then start an audio or video download. The Downloads page polls
+yt-dlp's actual progress and exposes cancellation and retry for failed jobs.
+Playback starts MPV with the validated URL. If a tool uses a non-standard
+location, save its absolute path in Settings before starting the operation.
+
 ## Project structure
 
 ```text
